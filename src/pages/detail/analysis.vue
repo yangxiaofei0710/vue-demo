@@ -10,7 +10,7 @@
                   购买数量：
               </div>
               <div class="sales-board-line-right">
-               
+                <v-counter :max='buyNumMax' :min='buyNumMin' @on-change="onParamChange('buyNum',$event)"></v-counter>
               </div>
           </div>
           <div class="sales-board-line">
@@ -18,7 +18,7 @@
                   产品类型：
               </div>
               <div class="sales-board-line-right">
-                 <v-selection></v-selection>
+                 <v-selection :selections='productTypes' @on-change="onParamChange('buyType',$event)"></v-selection>
               </div>
           </div>
           <div class="sales-board-line">
@@ -26,7 +26,9 @@
                   有效时间：
               </div>
               <div class="sales-board-line-right">
-                 
+                  <el-radio-group v-model="defaultProductList" @change="radioSelection">
+                      <el-radio-button v-for="item in productList" :label="item.value" :value="item.value" >{{item.label}}</el-radio-button>
+                  </el-radio-group>
               </div>
           </div>
           <div class="sales-board-line">
@@ -34,7 +36,11 @@
                   产品版本：
               </div>
               <div class="sales-board-line-right">
-                  
+                  <el-checkbox-group v-model="checkboxGroup1" @change="changes">
+                      <el-checkbox-button v-for="city in cities" :label="city.label" :key="city.value">
+                        {{city.label}}
+                      </el-checkbox-button>
+                  </el-checkbox-group>
               </div>
           </div>
           <div class="sales-board-line">
@@ -42,13 +48,13 @@
                   总价：
               </div>
               <div class="sales-board-line-right">
-                  元
+                  500元
               </div>
           </div>
           <div class="sales-board-line">
               <div class="sales-board-line-left">&nbsp;</div>
               <div class="sales-board-line-right">
-                  <div class="button" @click="showPayDialog">
+                  <div class="button">
                     立即购买
                   </div>
               </div>
@@ -81,16 +87,84 @@
 
 <script>
 import VSelection from '../../components/selection'
+import VCounter from '../../components/counter'
+import _ from 'lodash'
 export default {
   components: {
-    VSelection
+    VSelection,
+    VCounter
   },
   data () {
     return {
+      buyNumMax: 100,
+      buyNumMin: 1,
       buyNum: 0,
       buyType: {},
       versions: [],
-      period: {},
+      period: "",
+      productTypes: [
+        {
+          label: '入门版',
+          value:0
+        },
+        {
+          label: '中级版',
+          value:1
+        },
+        {
+          label: '高级版',
+          value:2
+        },
+      ],
+      defaultProductList:['半年'],
+      productList: [
+        {label: '半年', value: 0},
+        {label: '一年', value: 1},
+        {label: '三年', value: 2}
+      ],
+      checkboxGroup1: ['客戶版'],
+      cities:  [
+        {
+          label: '客戶版',
+          value:0
+        },
+        {
+          label: '代理商家版',
+          value:1
+        },
+        {
+          label: '專家版',
+          value:2
+        },
+      ],
+    }
+  },
+  methods: {
+    changes (value) {
+      this.versions = value
+      this.getPrice()
+    },
+    radioSelection (value) {
+      this.period = value
+      this.getPrice()
+    },
+    onParamChange (attr,val) {
+      this[attr] = val
+      this.getPrice()
+    },
+    getPrice () {
+      let buyVersionsArray = _.map(this.versions,(item) =>  {
+          return item
+      })
+      let reqParams = {
+        buyNumber: this.buyNum,
+        buyType: this.buyType.value,
+        period: this.period,
+        version: buyVersionsArray.join(",")
+      }
+      this.$http.post('/api/getPrice',reqParams).then((res) => {
+        console.log(res)
+      })
     }
   }
 }
@@ -98,5 +172,7 @@ export default {
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style>
-
+.sales-board-line .is-checked .el-checkbox-button__inner{
+  background-color:#4fc08d;
+}
 </style>
