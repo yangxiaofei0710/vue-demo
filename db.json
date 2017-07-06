@@ -39,8 +39,8 @@
   },
   "getPrice": {
     "buyNumber": 0,
-    "period": 1,
-    "version": ""
+    "period": 2,
+    "version": "客戶版,代理商家版,專家版"
   },
   "readPrice": {
     "buyNumber": 0,
