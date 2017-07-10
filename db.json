@@ -38,9 +38,10 @@
     "userId": 123123
   },
   "getPrice": {
-    "buyNumber": 0,
-    "period": 2,
-    "version": "客戶版,代理商家版,專家版"
+    "buyNumber": 12,
+    "period": "",
+    "version": "",
+    "amount": 48
   },
   "readPrice": {
     "buyNumber": 0,

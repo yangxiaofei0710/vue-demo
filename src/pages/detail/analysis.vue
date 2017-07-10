@@ -36,11 +36,9 @@
                   产品版本：
               </div>
               <div class="sales-board-line-right">
-                  <el-checkbox-group v-model="checkboxGroup1" @change="changes">
-                      <el-checkbox-button v-for="city in cities" :label="city.label" :key="city.value">
-                        {{city.label}}
-                      </el-checkbox-button>
-                  </el-checkbox-group>
+                  <v-mul-chooser
+                  :selections="versionList"
+                  @on-change="onParamChange('versions', $event)"></v-mul-chooser>
               </div>
           </div>
           <div class="sales-board-line">
@@ -48,7 +46,7 @@
                   总价：
               </div>
               <div class="sales-board-line-right">
-                  500元
+                  {{price}}
               </div>
           </div>
           <div class="sales-board-line">
@@ -88,11 +86,13 @@
 <script>
 import VSelection from '../../components/selection'
 import VCounter from '../../components/counter'
+import VMulChooser from '../../components/multiplyChooser'
 import _ from 'lodash'
 export default {
   components: {
     VSelection,
-    VCounter
+    VCounter,
+    VMulChooser
   },
   data () {
     return {
@@ -102,6 +102,7 @@ export default {
       buyType: {},
       versions: [],
       period: "",
+      price: 4,
       productTypes: [
         {
           label: '入门版',
@@ -123,19 +124,19 @@ export default {
         {label: '三年', value: 2}
       ],
       checkboxGroup1: ['客戶版'],
-      cities:  [
+      versionList: [
         {
-          label: '客戶版',
-          value:0
+          label: '客户版',
+          value: 0
         },
         {
-          label: '代理商家版',
-          value:1
+          label: '代理商版',
+          value: 1
         },
         {
-          label: '專家版',
-          value:2
-        },
+          label: '专家版',
+          value: 2
+        }
       ],
     }
   },
@@ -154,16 +155,17 @@ export default {
     },
     getPrice () {
       let buyVersionsArray = _.map(this.versions,(item) =>  {
-          return item
+          return item.value
       })
       let reqParams = {
         buyNumber: this.buyNum,
         buyType: this.buyType.value,
         period: this.period,
-        version: buyVersionsArray.join(",")
+        version: buyVersionsArray.join(","),
+        amount: this.buyNum*4
       }
       this.$http.post('/api/getPrice',reqParams).then((res) => {
-        console.log(res)
+        this.price = res.body.amount
       })
     }
   }
