@@ -26,7 +26,7 @@
                   有效时间：
               </div>
               <div class="sales-board-line-right">
-                  <el-radio-group v-model="defaultProductList" @change="radioSelection">
+                  <el-radio-group @change="radioSelection">
                       <el-radio-button v-for="item in productList" :label="item.value" :value="item.value" >{{item.label}}</el-radio-button>
                   </el-radio-group>
               </div>
@@ -52,7 +52,7 @@
           <div class="sales-board-line">
               <div class="sales-board-line-left">&nbsp;</div>
               <div class="sales-board-line-right">
-                  <div class="button">
+                  <div class="button" @click="showPayDialog" >
                     立即购买
                   </div>
               </div>
@@ -80,6 +80,32 @@
           <li>用户所在地理区域分布状况等</li>
         </ul>
       </div>
+      <my-dialog :is-show="isShowPayDialog" @on-close="hidePayDialog">
+      	<table class="buy-dialog-table">
+          <tr>
+            <th>购买数量</th>
+            <th>产品类型</th>
+            <th>有效时间</th>
+            <th>产品版本</th>
+            <th>总价</th>
+          </tr>
+          <tr>
+            <td>{{ buyNum }}</td>
+            <td>{{ buyType.label }}</td>
+            <td>{{ period.label }}</td>
+            <td>
+              <span v-for="item in versions">{{ item.label }}</span>
+            </td>
+            <td>{{ price }}</td>
+          </tr>
+        </table>
+        <h3 class="buy-dialog-title">请选择银行</h3>
+        <bank-chooser @on-change="onChangeBanks"></bank-chooser>
+        <div class="button buy-dialog-btn" @click="confirmBuy" >
+          确认购买
+        </div>
+      </my-dialog>
+      <check-order isShowFailDialog="true"></check-order>	
    </div>   
 </template>
 
@@ -87,21 +113,27 @@
 import VSelection from '../../components/selection'
 import VCounter from '../../components/counter'
 import VMulChooser from '../../components/multiplyChooser'
+import Dialog from '../../components/dialog'
+import BankChooser from '../../components/bankChooser'
+import CheckOrder from '../../components/checkOrder'
 import _ from 'lodash'
 export default {
   components: {
     VSelection,
     VCounter,
-    VMulChooser
+    VMulChooser,
+    myDialog: Dialog,
+    BankChooser,
+    CheckOrder
   },
   data () {
     return {
       buyNumMax: 100,
       buyNumMin: 1,
-      buyNum: 0,
+      buyNum: 1,
       buyType: {},
       versions: [],
-      period: "",
+      period: {},
       price: 4,
       productTypes: [
         {
@@ -117,7 +149,6 @@ export default {
           value:2
         },
       ],
-      defaultProductList:['半年'],
       productList: [
         {label: '半年', value: 0},
         {label: '一年', value: 1},
@@ -138,6 +169,8 @@ export default {
           value: 2
         }
       ],
+      isShowPayDialog: false,
+      bankID: null
     }
   },
   methods: {
@@ -160,21 +193,79 @@ export default {
       let reqParams = {
         buyNumber: this.buyNum,
         buyType: this.buyType.value,
-        period: this.period,
+        period: this.period.value,
         version: buyVersionsArray.join(","),
         amount: this.buyNum*4
       }
       this.$http.post('/api/getPrice',reqParams).then((res) => {
         this.price = res.body.amount
       })
+    },
+    showPayDialog () {
+    	this.isShowPayDialog = true
+    },
+    hidePayDialog  () {
+    	this.isShowPayDialog = false
+    },
+    onChangeBanks (bankObj) {
+    	this.bankID = bankObj.id
+    	console.log(this.bankID)
+    },
+    confirmBuy () {
+    	let buyVersionsArray = _.map(this.versions,(item) =>  {
+          return item.value
+      })
+      let reqParams = {
+        buyNumber: this.buyNum,
+        buyType: this.buyType.value,
+        period: this.period.value,
+        version: buyVersionsArray.join(","),
+        amount: this.buyNum*4,
+        bankID:this.bankID,
+        orderID:"6xf0132"
+      }
+      this.$http.post('/api/createOrder',reqParams).then((res) => {
+      	this.orderID = res.body.orderID
+      },(err) => {
+      	console.log(err)
+      })
     }
+  },
+  mounted () {
+    this.buyNum = 1
+    this.buyType = this.buyTypes[0]
+    this.versions = [this.versionList[0]]
+    this.period = this.productList[0]
+    this.getPrice()
   }
 }
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
-<style>
+<style scoped>
 .sales-board-line .is-checked .el-checkbox-button__inner{
   background-color:#4fc08d;
+}
+.buy-dialog-title {
+  font-size: 16px;
+  font-weight: bold;
+}
+.buy-dialog-btn {
+  margin-top: 20px;
+}
+.buy-dialog-table {
+  width: 100%;
+  margin-bottom: 20px;
+}
+.buy-dialog-table td,
+.buy-dialog-table th{
+  border: 1px solid #e3e3e3;
+  text-align: center;
+  padding: 5px 0;
+}
+.buy-dialog-table th {
+  background: #4fc08d;
+  color: #fff;
+  border: 1px solid #4fc08d;
 }
 </style>

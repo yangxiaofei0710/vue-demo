@@ -38,10 +38,10 @@
     "userId": 123123
   },
   "getPrice": {
-    "buyNumber": 12,
-    "period": "",
+    "buyNumber": 1,
+    "buyType": 1,
     "version": "",
-    "amount": 48
+    "amount": 4
   },
   "readPrice": {
     "buyNumber": 0,
@@ -49,7 +49,11 @@
     "version": ""
   },
   "createOrder": {
-    "orderId": "6djk979"
+    "buyNumber": 1,
+    "version": "",
+    "amount": 4,
+    "bankID": 501,
+    "orderID": "6xf0132"
   },
   "getOrderList": {
     "list": [
